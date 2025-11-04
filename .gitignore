@@ -72,8 +72,24 @@ llm/LLaMA-Factory/saves/
 llm/data/cache/
 llm/.cache/
 
-# LLM 폴더 전체 (모델 파일, 학습 데이터 등 대용량 파일)
-llm/
+# LLM 불필요 파일 (모델, 로그, 캐시 등 대용량 파일만 제외)
+llm/checkpoints/
+llm/logs/
+llm/wandb/
+llm/runs/
+llm/saves/
+llm/outputs/
+llm/LLaMA-Factory/saves/
+llm/LLaMA-Factory/logs/
+llm/LLaMA-Factory/checkpoints/
+llm/LLaMA-Factory/output/
+llm/LLaMA-Factory/wandb/
+llm/*.gguf
+llm/*.pth
+llm/*.pt
+llm/*.ckpt
+llm/*.safetensors
+llm/*.bin
 __pycache__/
 *.pyc
 *.pyo

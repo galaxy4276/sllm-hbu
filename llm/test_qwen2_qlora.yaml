@@ -1,0 +1,74 @@
+# Qwen2-1.5B Big5 Psychology Quick Test Configuration
+# 10개 샘플로 빠른 테스트 및 벤치마킹용
+
+### Model Configuration
+model_name_or_path: Qwen/Qwen2-1.5B
+stage: sft
+do_train: true
+finetuning_type: lora
+# quantization_bit: 4  # M4 Pro에서는 비활성화
+torch_dtype: fp16
+
+### Dataset Configuration
+dataset: big5_test_10
+template: qwen
+cutoff_len: 2048
+max_samples: 10
+overwrite_cache: true
+preprocessing_num_workers: 8
+
+### LoRA Configuration (테스트용으로 가볍)
+lora_target: all
+lora_rank: 32  # 테스트용으로 작게 설정
+lora_alpha: 64
+lora_dropout: 0.05
+
+### Training Configuration (빠른 테스트)
+output_dir: saves/qwen2-1.5b-big5-test
+logging_steps: 1
+save_steps: 5
+eval_steps: 5
+evaluation_strategy: steps
+save_strategy: steps
+learning_rate: 1e-4  # 테스트용으로 높게 설정
+num_train_epochs: 2  # 테스트용으로 적게 설정
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 2
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+
+### Evaluation Configuration
+val_size: 0.2
+per_device_eval_batch_size: 1
+eval_accumulation_steps: 4
+predict_with_generate: true
+
+### Generation Configuration
+do_sample: true
+temperature: 0.7
+top_p: 0.9
+top_k: 50
+num_beams: 1
+repetition_penalty: 1.1
+
+### Optimization Configuration
+optim: adamw_torch
+weight_decay: 0.0
+max_grad_norm: 1.0
+
+### Hardware Configuration
+ddp_find_unused_parameters: false
+ddp_bucket_cap_mb: 25
+ddp_broadcast_buffers: false
+dataloader_pin_memory: true
+remove_unused_columns: false
+
+### Logging Configuration
+logging_dir: logs/qwen2-big5-test
+logging_first_step: true
+logging_nan_inf_filter: true
+
+# 추가 테스트용 설정
+save_only_model: true
+resume_from_checkpoint: null
+resume_lora_training: true
