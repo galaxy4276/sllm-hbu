@@ -1,98 +1,364 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+import React, { useRef, useEffect } from 'react';
+import { StyleSheet, View, StatusBar, Dimensions, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { TouchableOpacity, Image } from 'react-native';
+import { TouchRipple } from '@/components/TouchRipple/TouchRipple';
+import {
+  useFonts,
+  Nunito_700Bold,
+  Nunito_600SemiBold,
+} from '@expo-google-fonts/nunito';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  withSpring,
+  Easing,
+  cancelAnimation,
+} from 'react-native-reanimated';
 
-export default function HomeScreen() {
+const { width, height } = Dimensions.get('window');
+
+export default function LandingScreen() {
+  const router = useRef(useRouter());
+
+  let [fontsLoaded] = useFonts({
+    Nunito_700Bold,
+    Nunito_600SemiBold,
+  });
+
+  // Reanimated shared values for cat logo animation
+  const catScale = useSharedValue(1);
+  const catRotate = useSharedValue(0);
+  const catTranslateY = useSharedValue(0);
+  const catTranslateX = useSharedValue(0);
+  const catSkewX = useSharedValue(0);
+  const animationTime = useSharedValue(0);
+
+  // Reanimated shared values for button animation
+  const buttonScale = useSharedValue(1);
+  const buttonPulse = useSharedValue(0);
+  const buttonFloatY = useSharedValue(0);
+  const isAnimating = useRef(false);
+
+  // Cat logo and button animation effect
+  useEffect(() => {
+    const startCatAnimation = () => {
+      // Scale animation: breathe effect
+      catScale.value = withRepeat(
+        withSequence(
+          withTiming(1.1, { duration: 2000, easing: Easing.inOut(Easing.quad) }),
+          withTiming(0.95, { duration: 1500, easing: Easing.inOut(Easing.quad) }),
+          withTiming(1.05, { duration: 1800, easing: Easing.inOut(Easing.quad) }),
+          withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.quad) })
+        ),
+        -1,
+        false
+      );
+
+      // Rotation animation: gentle wobble
+      catRotate.value = withRepeat(
+        withSequence(
+          withTiming(-8, { duration: 800, easing: Easing.inOut(Easing.quad) }),
+          withTiming(5, { duration: 600, easing: Easing.inOut(Easing.quad) }),
+          withTiming(-3, { duration: 700, easing: Easing.inOut(Easing.quad) }),
+          withTiming(0, { duration: 900, easing: Easing.inOut(Easing.quad) })
+        ),
+        -1,
+        false
+      );
+
+      // Vertical movement: floating
+      catTranslateY.value = withRepeat(
+        withSequence(
+          withTiming(-15, { duration: 2500, easing: Easing.inOut(Easing.sin) }),
+          withTiming(10, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+          withTiming(-5, { duration: 1800, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0, { duration: 2200, easing: Easing.inOut(Easing.sin) })
+        ),
+        -1,
+        false
+      );
+
+      // Horizontal movement: subtle sway
+      catTranslateX.value = withRepeat(
+        withSequence(
+          withTiming(8, { duration: 3000, easing: Easing.inOut(Easing.sin) }),
+          withTiming(-6, { duration: 2500, easing: Easing.inOut(Easing.sin) }),
+          withTiming(3, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0, { duration: 2800, easing: Easing.inOut(Easing.sin) })
+        ),
+        -1,
+        false
+      );
+
+      // Skew animation: playful tilt
+      catSkewX.value = withRepeat(
+        withSequence(
+          withTiming(5, { duration: 2200, easing: Easing.inOut(Easing.quad) }),
+          withTiming(-8, { duration: 1800, easing: Easing.inOut(Easing.quad) }),
+          withTiming(3, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
+          withTiming(0, { duration: 2000, easing: Easing.inOut(Easing.quad) })
+        ),
+        -1,
+        false
+      );
+    };
+
+    // Button floating animation
+    buttonFloatY.value = withRepeat(
+      withSequence(
+        withTiming(-8, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(5, { duration: 1800, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-3, { duration: 1600, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 1400, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      false
+    );
+
+    startCatAnimation();
+
+    return () => {
+      cancelAnimation(catScale);
+      cancelAnimation(catRotate);
+      cancelAnimation(catTranslateY);
+      cancelAnimation(catTranslateX);
+      cancelAnimation(catSkewX);
+      cancelAnimation(buttonFloatY);
+    };
+  }, []);
+
+  // Animated style for cat logo
+  const catAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { scale: catScale.value },
+        { rotate: `${catRotate.value}deg` },
+        { translateY: catTranslateY.value },
+        { translateX: catTranslateX.value },
+        { skewX: `${catSkewX.value}deg` },
+      ],
+    };
+  });
+
+  // Animated style for button
+  const buttonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: buttonScale.value },
+      { translateY: buttonFloatY.value }
+    ],
+    shadowOpacity: 0.3 + (buttonPulse.value * 0.4),
+  }));
+
+  const handleStartOnboarding = () => {
+    if (isAnimating.current) return;
+    isAnimating.current = true;
+
+    // Stop cat animation when user interacts
+    cancelAnimation(catScale);
+    cancelAnimation(catRotate);
+    cancelAnimation(catTranslateY);
+    cancelAnimation(catTranslateX);
+    cancelAnimation(catSkewX);
+
+    // Stop button floating animation
+    cancelAnimation(buttonFloatY);
+
+    // Quick cat bounce animation before navigation
+    catScale.value = withSequence(
+      withSpring(1.3, { damping: 15, stiffness: 400 }),
+      withSpring(1, { damping: 20, stiffness: 300 })
+    );
+
+    catRotate.value = withSequence(
+      withTiming(360, { duration: 500, easing: Easing.out(Easing.quad) }),
+      withTiming(0, { duration: 100, easing: Easing.inOut(Easing.quad) })
+    );
+
+    // Button bounce effect
+    buttonFloatY.value = withSequence(
+      withSpring(-15, { damping: 12, stiffness: 200 }),
+      withSpring(0, { damping: 15, stiffness: 300 })
+    );
+
+    // 둥둥 떨는 애니메이션
+    buttonScale.value = withSequence(
+      withTiming(0.95, { duration: 100 }),
+      withTiming(1.05, { duration: 100 }),
+      withTiming(1, { duration: 100 })
+    );
+
+    // 펄스 효과
+    buttonPulse.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 600 }),
+        withTiming(0, { duration: 600 })
+      ),
+      -1,
+      false
+    );
+
+    // 애니메이션 후 네비게이션
+    setTimeout(() => {
+      router.current.push('/onboarding/welcome');
+      isAnimating.current = false;
+    }, 1500);
+  };
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      <View style={styles.webWrapper}>
+        <View style={styles.mobileContainer}>
+          <TouchRipple>
+            <View style={styles.content}>
+              {/* 앱 로고 강조 */}
+              <View style={styles.logoContainer}>
+                <Animated.Image
+                  source={require('@/assets/images/logo-cat.png')}
+                  style={[styles.logoImage, catAnimatedStyle]}
+                  resizeMode="contain"
+                />
+                <ThemedText style={[styles.logoText, { fontFamily: 'Nunito_700Bold' }]}>CATUS</ThemedText>
+                <ThemedText style={styles.subtitle}>귀여운 고양이와 함께하는 감정 교류</ThemedText>
+              </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+              {/* 개인정보 안내 */}
+              <View style={styles.privacyContainer}>
+                <ThemedText style={styles.privacyText}>
+                  개인정보처리방침
+                </ThemedText>
+              </View>
+            </View>
+          </TouchRipple>
+
+          {/* 시작 버튼 - 애니메이션 적용 */}
+          <Animated.View
+            style={[
+              styles.startButton,
+              buttonAnimatedStyle
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.startButtonInner}
+              onPress={handleStartOnboarding}
+              activeOpacity={0.8}
+            >
+              <ThemedText style={[styles.startButtonText, { fontFamily: 'Nunito_600SemiBold' }]}>
+                시작하기
+              </ThemedText>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  webWrapper: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    ...Platform.select({
+      web: {
+        padding: 20,
+      },
+      default: {},
+    }),
   },
-  stepContainer: {
-    gap: 8,
+  mobileContainer: {
+    width: Platform.OS === 'web' ? 360 : width,
+    maxWidth: width,
+    height: Platform.OS === 'web' ? '100%' : height,
+    maxHeight: height,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  content: {
+    flex: 1,
+    width: Platform.OS === 'web' ? width * 0.9 : width * 0.9,
+    maxWidth: Platform.OS === 'web' ? 324 : undefined,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: Platform.OS === 'web' ? height * 0.7 : height * 0.6,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  logoImage: {
+    width: 164,
+    height: 164,
+    marginBottom: 25,
+  },
+  logoText: {
+    fontSize: Platform.OS === 'web' ? 52 : 46,
+    fontWeight: 'bold',
+    color: '#59AC77',
     marginBottom: 8,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: Platform.OS === 'web' ? 60 : 54,
+    height: Platform.OS === 'web' ? 60 : 54,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  subtitle: {
+    fontSize: Platform.OS === 'web' ? 20 : 18,
+    color: '#666666',
+    textAlign: 'center',
+    opacity: 0.8,
+    marginBottom: 4,
+    lineHeight: Platform.OS === 'web' ? 24 : 22,
+  },
+  startButton: {
     position: 'absolute',
+    bottom: Platform.OS === 'web' ? 100 : 120,
+    backgroundColor: '#59AC77',
+    paddingHorizontal: 50,
+    paddingVertical: 14,
+    borderRadius: 25,
+    shadowColor: '#59AC77',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 10,
+  },
+  startButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  startButtonInner: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  privacyContainer: {
+    position: 'absolute',
+    bottom: 40,
+  },
+  privacyText: {
+    fontSize: 12,
+    color: '#666666',
+    opacity: 0.7,
+    textDecorationLine: 'underline',
   },
 });

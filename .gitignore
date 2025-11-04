@@ -41,3 +41,76 @@ app-example
 # generated native folders
 /ios
 /android
+
+# IDE Editor Files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# LLM/ML Files (Large size)
+*.gguf
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+*.bin
+
+# LLM Training/Inference
+llm/checkpoints/
+llm/logs/
+llm/wandb/
+llm/runs/
+llm/saves/
+llm/outputs/
+llm/LLaMA-Factory/saves/
+llm/LLaMA-Factory/logs/
+llm/LLaMA-Factory/saves/
+
+# Dataset Cache
+llm/data/cache/
+llm/.cache/
+
+# LLM 폴더 전체 (모델 파일, 학습 데이터 등 대용량 파일)
+llm/
+__pycache__/
+*.pyc
+*.pyo
+
+# Session & Logs
+.serena/
+*.session
+*.log
+
+# Python Environment
+venv/
+env/
+ENV/
+.venv/
+.ipynb_checkpoints/
+
+# TensorFlow
+*.tfrecord
+*.tflite
+
+# Temporary Files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.save
+
+# macOS Extended
+.AppleDouble
+.LSOverride
+DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
